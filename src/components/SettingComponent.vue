@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, toRefs } from "vue";
+import { ref, watch } from "vue";
 
 const props = defineProps<{
   difficulty: string;
