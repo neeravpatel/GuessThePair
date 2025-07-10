@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch, onUnmounted } from "vue";
+import SettingComponent from "./SettingComponent.vue";
 
 type Difficulty = "Easy" | "Medium" | "Hard";
 
@@ -9,7 +10,7 @@ const puzzles: Record<
     color: string;
     category: string;
     texture: string;
-    answers: { name: string; image: string }[];
+    answers: { name: string }[];
   }[]
 > = {
   Easy: [
@@ -18,8 +19,12 @@ const puzzles: Record<
       category: "One fruit and one vegetable",
       texture: "One is hard, one soft",
       answers: [
-        { name: "Apple", image: "https://i.imgur.com/NzI5V3L.jpg" },
-        { name: "Tomato", image: "https://i.imgur.com/M2xKp8T.jpg" },
+        {
+          name: "Apple",
+        },
+        {
+          name: "Tomato",
+        },
       ],
     },
   ],
@@ -32,9 +37,48 @@ const question = ref<{
   color: string;
   category: string;
   texture: string;
-  answers: { name: string; image: string }[];
+  answers: { name: string }[];
 } | null>(null);
 const showAnswer = ref(false);
+const showSettings = ref(false);
+
+const timerMinutes = ref(1); // default 1 minute
+const timeLeft = ref(0);
+let timerInterval = ref<number | null>(null);
+
+function startTimer() {
+  clearTimer();
+  timeLeft.value = timerMinutes.value * 60;
+  timerInterval.value = window.setInterval(() => {
+    if (timeLeft.value > 0) {
+      timeLeft.value--;
+    } else {
+      showAnswer.value = true;
+      clearTimer();
+    }
+  }, 1000);
+}
+
+function clearTimer() {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value);
+    timerInterval.value = null;
+  }
+}
+
+function resetGame() {
+  showAnswer.value = false;
+  loadQuestion();
+}
+
+onUnmounted(() => {
+  clearTimer();
+});
+
+// Restart timer when difficulty changes
+watch(difficulty, () => {
+  resetGame();
+});
 
 const loadQuestion = () => {
   const pool = puzzles[difficulty.value];
@@ -42,61 +86,63 @@ const loadQuestion = () => {
   showAnswer.value = false;
 };
 
+function skipTimer() {
+  timeLeft.value = 0;
+  showAnswer.value = true;
+  clearTimer();
+}
+
 loadQuestion();
+// Remove or comment out: startTimer();
 </script>
 
 <template>
   <div class="font-sans text-center mx-auto p-6">
-    <div class="mb-4">
-      <label class="mr-2 font-medium dark:text-gray-300"
-        >Select Difficulty:</label
+    <div class="mb-4 flex flex-row items-center justify-between px-6">
+      <button
+        @click="startTimer"
+        class="ml-3 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-semibold transition"
+        :disabled="timerInterval !== null && !showAnswer"
       >
-      <div class="inline-flex gap-4">
-        <label class="inline-flex items-center">
-          <input
-            type="radio"
-            value="Easy"
-            v-model="difficulty"
-            @change="loadQuestion"
-            class="form-radio text-blue-600"
-          />
-          <span class="ml-1 dark:text-gray-200">Easy</span>
-        </label>
-        <label class="inline-flex items-center">
-          <input
-            type="radio"
-            value="Medium"
-            v-model="difficulty"
-            @change="loadQuestion"
-            class="form-radio text-blue-600"
-          />
-          <span class="ml-1 dark:text-gray-200">Medium</span>
-        </label>
-        <label class="inline-flex items-center">
-          <input
-            type="radio"
-            value="Hard"
-            v-model="difficulty"
-            @change="loadQuestion"
-            class="form-radio text-blue-600"
-          />
-          <span class="ml-1 dark:text-gray-200">Hard</span>
-        </label>
-      </div>
+        Start
+      </button>
+      <span class="font-mono text-lg dark:text-gray-200">
+        ⏰
+        {{
+          Math.floor(timeLeft / 60)
+            .toString()
+            .padStart(2, "0")
+        }}:{{ (timeLeft % 60).toString().padStart(2, "0") }}
+      </span>
+      <button
+        @click="skipTimer"
+        class="ml-3 px-3 py-1 bg-red-500 dark:bg-red-600 text-white rounded text-sm font-semibold transition"
+        :disabled="showAnswer"
+      >
+        Skip
+      </button>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md p-4 mb-4 space-y-2 dark:bg-gray-800">
+    <div
+      class="bg-white rounded-lg shadow-md p-4 mb-4 space-y-2 dark:bg-gray-800"
+    >
       <h2 class="text-xl font-semibold mb-2 dark:text-gray-300">Clues</h2>
       <div class="text-sm text-gray-600 mb-4 dark:text-gray-400">
         Use clues like color, category, and texture to guess related items.
       </div>
-      <p class="mb-4 border-2 rounded-2xl p-1 md:p-5 dark:bg-gray-700 dark:text-gray-200">
+      <p
+        class="mb-4 border-2 rounded-2xl p-1 md:p-5 dark:bg-gray-700 dark:text-gray-200"
+      >
         <strong>Color:</strong> {{ question?.color }}
       </p>
-      <p class="mb-4 border-2 rounded-2xl p-1 md:p-5 dark:bg-gray-700 dark:text-gray-200">
+      <p
+        class="mb-4 border-2 rounded-2xl p-1 md:p-5 dark:bg-gray-700 dark:text-gray-200"
+      >
         <strong>Category:</strong> {{ question?.category }}
       </p>
-      <p class="mb-4 border-2 rounded-2xl p-1 md:p-5 dark:bg-gray-700 dark:text-gray-200">
+      <p
+        class="mb-4 border-2 rounded-2xl p-1 md:p-5 dark:bg-gray-700 dark:text-gray-200"
+      >
         <strong>Texture:</strong> {{ question?.texture }}
       </p>
     </div>
@@ -108,32 +154,45 @@ loadQuestion();
       <div
         v-for="(item, index) in question?.answers"
         :key="index"
-        class="flex flex-col items-center"
+        class="flex flex-col items-center border-2 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-md dark:text-gray-200"
       >
-        <img
-          :src="item.image"
-          :alt="item.name"
-          class="w-24 h-24 object-cover rounded-lg mb-2 shadow"
-        />
         <p class="font-medium dark:text-gray-200">{{ item.name }}</p>
       </div>
     </div>
   </div>
 
-  <div class="flex items-center justify-between text-center mx-auto px-6">
+  <div class="flex items-center justify-evenly">
     <button
-      @click="showAnswer = !showAnswer"
-      class="mr-2 flex items-center justify-center bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition"
-    >
-      {{ showAnswer ? "Hide Answer" : "Show Answer" }}
-    </button>
-
-    <button
-      @click="loadQuestion"
+      @click="resetGame"
       class="flex items-center justify-center bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2 px-4 rounded-lg transition"
     >
       🔄 New Question
     </button>
+
+    <button
+      @click="showSettings = true"
+      class="flex items-center justify-center bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2 px-4 rounded-lg transition"
+    >
+      ⚙️ Settings
+    </button>
+
+    <SettingComponent
+      v-if="showSettings"
+      :difficulty="difficulty"
+      :timerMinutes="timerMinutes"
+      @update:difficulty="
+        (val) => {
+          difficulty = val;
+        }
+      "
+      @update:timerMinutes="
+        (val) => {
+          timerMinutes = val;
+        }
+      "
+      @apply="resetGame"
+      @close="showSettings = false"
+    />
   </div>
 </template>
 
