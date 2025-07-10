@@ -11,7 +11,7 @@ const toggleDark = useToggle(isDark);
 <template>
   <div
     :class="{ dark: isDark }"
-    class="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900"
+    class="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900 snap-always md:snap-normal"
   >
     <header
       class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center"

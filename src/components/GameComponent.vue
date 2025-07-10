@@ -101,7 +101,7 @@ loadQuestion();
     <div class="mb-4 flex flex-row items-center justify-between px-6">
       <button
         @click="startTimer"
-        class="ml-3 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-semibold transition"
+        class="px-5 py-2 bg-green-500 hover:bg-green-600 text-white rounded text-md font-semibold transition"
         :disabled="timerInterval !== null && !showAnswer"
       >
         Start
@@ -116,7 +116,7 @@ loadQuestion();
       </span>
       <button
         @click="skipTimer"
-        class="ml-3 px-3 py-1 bg-red-500 dark:bg-red-600 text-white rounded text-sm font-semibold transition"
+        class="px-4 py-2 bg-red-500 dark:bg-red-600 text-white rounded text-md font-semibold transition"
         :disabled="showAnswer"
       >
         Skip
