@@ -1,6 +1,6 @@
 # 🧠 Guess the Pair
 
-**Guess the Pair** is a fun and educational web game built with Vue 3 + Vite. Kids use clues like **color**, **category**, and **texture** to guess two related items—like an apple and a tomato. Designed to build reasoning and vocabulary skills while keeping it playful and visual.
+**Guess the Pair** is a fun and educational web game. Kids use clues like **color**, **category**, and **texture** to guess two related items—like an apple and a tomato. Designed to build reasoning and vocabulary skills while keeping it playful and visual.
 
 ---
 
